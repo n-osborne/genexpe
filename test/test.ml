@@ -1,7 +1,7 @@
 open Genexpe
 open QCheck
 
-module Spec : Spec = struct
+module Spec = struct
   type cmd = Incr | Read | Decr
   type state = int
   type sut = int ref
@@ -42,5 +42,15 @@ let prop (seq, p0, p1) =
   | None -> false
   | Some spawn_state -> go_par spawn_state p0 p1
 
-let test = Test.make ~name:"genexpe" ~count:10000 (M.arb_pg 5 10) prop
+let arb =
+  let occ cstr (a, b, c) =
+    List.fold_left (fun i c -> if c = cstr then i + 1 else i) 0 (a @ b @ c)
+  in
+  M.arb_pg 5 10
+  |> add_stat ("length p0", fun (_, p0, p1) -> List.length p0 + List.length p1)
+  |> add_stat ("occ Decr", occ Spec.Decr)
+  |> add_stat ("occ Decr", occ Spec.Read)
+  |> add_stat ("occ Decr", occ Spec.Incr)
+
+let test = Test.make ~name:"genexpe" ~count:10000 arb prop
 let _ = QCheck_runner.run_tests ~verbose:true [ test ]
