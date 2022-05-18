@@ -1,0 +1,4 @@
+(test
+ (name test)
+ (package genexpe)
+ (libraries qcheck genexpe))

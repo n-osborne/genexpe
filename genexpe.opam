@@ -1,0 +1,28 @@
+opam-version: "2.0"
+name: "gen-expe"
+synopsis: ""
+maintainer: ["Nicolas Osborne <email@n-osborne.info>"]
+authors: ["Nicolas Osborne <email@n-osborne.info>"]
+homepage: ""
+dev-repo: ""
+doc: ""
+bug-reports: ""
+depends: [
+  "ocaml"
+  "dune"
+  "qcheck"
+]
+build: [
+  ["dune" "subst"] {dev} 
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
