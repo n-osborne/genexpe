@@ -1,19 +1,18 @@
 opam-version: "2.0"
-name: "gen-expe"
-synopsis: ""
-maintainer: ["Nicolas Osborne <email@n-osborne.info>"]
-authors: ["Nicolas Osborne <email@n-osborne.info>"]
-homepage: ""
-dev-repo: ""
-doc: ""
-bug-reports: ""
+name: "genexpe"
+synopsis: "experimentation on generating concurrent programs with preconditions"
+maintainer: "Nicolas Osborne <email@n-osborne.info>"
+authors: "Nicolas Osborne <email@n-osborne.info>"
+homepage: "https://github.com/n-osborne/genexpe"
+bug-reports: "https://github.com/n-osborne/genexpe/issues"
+dev-repo: "git://github.com/n-osborne/genexpe"
 depends: [
-  "ocaml"
+  "ocaml" {>= "4.12"}
   "dune"
-  "qcheck"
+  "qcheck" {with-test}
 ]
 build: [
-  ["dune" "subst"] {dev} 
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"
