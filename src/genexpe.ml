@@ -21,18 +21,11 @@ module type Spec = sig
       e.g., to prevent the shrinker from breaking invariants when minimizing
       counterexamples. *)
 
-  val cmd_gens : cmd Gen.t list
-  (** The list of the command generators *)
+  val cmd_gens : cmd arbitrary
+  (** A general command generators *)
 end
 
-module Make (Spec : Spec) : sig
-  val gen_pg :
-    int -> int -> (Spec.cmd list * Spec.cmd list * Spec.cmd list) Gen.t
-  (** [gen_pg seq_len par_len] generates a triplet of list of commands.
-
-      - The first one is the sequential prefix.
-      - The two last ones are two conccurrent processes. *)
-end = struct
+module Make (Spec : Spec) = struct
   let run_pg state cmds = List.fold_right Spec.next_state cmds state
 
   (** [specialize p g] returns a generator that generate only one value but a
@@ -50,7 +43,7 @@ end = struct
 
   let next_cmd (p : Spec.cmd -> bool) : Spec.cmd option Gen.t =
     (* maybe if the [oneof] is in specialize the result would be better *)
-    specialize p (Gen.oneof Spec.cmd_gens)
+    specialize p Spec.cmd_gens.gen
 
   (** [valid_seq state pg] checks whether the sequential [pg] is valid
       precondition-wise when starting from [state] *)
@@ -127,4 +120,20 @@ end = struct
     gen_seq seq_len >>= fun pref ->
     run_pg Spec.init_state pref |> gen_par par_len >>= fun (p0, p1) ->
     triple (return pref) (return p0) (return p1)
+
+  let print_pg : (Spec.cmd list * Spec.cmd list * Spec.cmd list) Print.t option
+      =
+    let open Print in
+    match Spec.cmd_gens.print with
+    | None -> None
+    | Some p ->
+        Some
+          (fun (seq, p0, p1) ->
+            let p = list p in
+            p seq ^ (pair p p) (p0, p1))
+
+  let arb_pg m n =
+    match print_pg with
+    | None -> QCheck.make (gen_pg m n)
+    | Some print -> QCheck.make ~print (gen_pg m n)
 end

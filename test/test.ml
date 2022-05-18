@@ -8,7 +8,12 @@ module Spec : Spec = struct
 
   let init_state = 0
   let precond c s = match c with Incr -> true | Read -> true | Decr -> s > 0
-  let cmd_gens = List.map Gen.return [ Incr; Read; Decr ]
+
+  let cmd_gens =
+    QCheck.make
+      ~print:(function Incr -> "Incr" | Read -> "Read" | Decr -> "Decr")
+      (Gen.oneof (List.map Gen.return [ Incr; Read; Decr ]))
+
   let next_state c s = match c with Incr -> s + 1 | Read -> s | Decr -> s - 1
 end
 
@@ -37,6 +42,5 @@ let prop (seq, p0, p1) =
   | None -> false
   | Some spawn_state -> go_par spawn_state p0 p1
 
-let arb_cmds n m = QCheck.make (M.gen_pg n m)
-let test = Test.make ~name:"genexpe" ~count:1000 (arb_cmds 5 10) prop
-let () = QCheck_runner.run_tests_main [ test ]
+let test = Test.make ~name:"genexpe" ~count:10000 (M.arb_pg 5 10) prop
+let _ = QCheck_runner.run_tests ~verbose:true [ test ]
